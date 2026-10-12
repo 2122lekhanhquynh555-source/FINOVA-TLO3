@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: finova
+    runtime: python
+    plan: starter              # a paid plan is required for a persistent disk (free plans reset their filesystem)
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --workers 2 --timeout 120 --bind 0.0.0.0:$PORT
+    healthCheckPath: /healthz
+    disk:
+      name: finova-data
+      mountPath: /var/data     # SQLite database, uploads and secret key live here
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3
+      - key: DATA_DIR
+        value: /var/data
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false            # paste your Google AI Studio key in the Render dashboard (never commit it)
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: ADMIN_EMAILS
+        sync: false            # comma-separated emails allowed to manage support tickets
+      - key: ALLOW_DEMO_RESET
+        value: "1"             # DEMO ONLY: shows the reset code on screen. Remove once SMTP_* is configured.
+      # Optional email delivery for password-reset codes and ticket notifications:
+      # SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM, SUPPORT_EMAIL
